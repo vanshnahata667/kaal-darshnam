@@ -10,7 +10,7 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
  useEffect(()=>{rotation.current=rotating},[rotating]);
  useEffect(()=>{
   if(!host.current)return;setError(false); const el=host.current; let renderer:THREE.WebGLRenderer;let disposed=false;
-  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true})}catch{setError(true);return}
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true})}catch{queueMicrotask(()=>{if(!disposed)setError(true)});return}
   const scene=new THREE.Scene();scene.background=new THREE.Color("#e7eae6");scene.fog=new THREE.Fog("#e7eae6",45,95);
   const camera=new THREE.PerspectiveCamera(38,el.clientWidth/el.clientHeight,.1,150);camera.position.set(24,19,28);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;el.appendChild(renderer.domElement);
@@ -46,6 +46,25 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
    if(full||stage===1){for(let i=0;i<(full?18:7);i++)box(-3,2.5+i*.5,0,4.5-i*.18,.5,4.5-i*.18,speculative,"Upper tower");if(full)cylinder(-3,11.5,0,.8,.5,speculative,"Upper tower")}
    for(const z of [-4.4,4.4])for(let x=-5;x<=5;x+=2){const wheel=cylinder(x,.95,z,.85,.22,edge,"Chariot wheels");wheel.rotation.x=Math.PI/2;}
    for(let i=0;i<7;i++)box(6.5+i*.3,1.15-i*.15,0,.4,.25,2.5,edge,"Chariot platform");
+    }else if(monument==='modhera'){
+     for(let i=0;i<4;i++)box(0,.18+i*.25,2,12-i*.45, .28,7-i*.35,edge,"Surya Kund");
+     for(let x=-5;x<=5;x+=2)for(let z=0;z<=4;z+=2)box(x,.9,z,.42,1.4,.42,stone,"Kund pavilion");
+     box(0,2,-3,8,2.8,4,stone,"Sabha Mandapa");
+     for(let x=-3;x<=3;x+=2)box(x,3.8,-3,.38,3,.38,inferred,"Carved pillar");
+     box(0,4.7,-3,6.5,.35,3.2,inferred,"Mandapa roof");
+     box(0,2,-6,4.8,2.6,3.8,stone,"Sanctuary");
+     if(full)for(let i=0;i<5;i++)box(0,3.5+i*.38,-6,4.2-i*.55,.35,3.2-i*.42,speculative,"Lost tower");
+    }else if(monument==='nalanda'){
+     for(let z=-4;z<=4;z+=2){box(-4,1,z,5.5,2.2,1.2,stone,"Residential monastery");box(4,1,z,5.5,2.2,1.2,stone,"Residential monastery");}
+     for(let x=-2;x<=2;x+=2)box(x,.8,0,.5,1.6,.5,edge,"Monastery pillar");
+     box(0,2.2,6,4.5,3.6,4.5,stone,"Temple mound");
+   for(let i=0;i<(full?6:3);i++)box(0,4+i*.45,6,3.8-i*.55,.35,3.8-i*.55,speculative,"Temple superstructure");
+    }else if(monument==='shanti-stupa'){
+     cylinder(0,.5,0,5,.9,edge,"Stupa base");
+     cylinder(0,2,0,3.8,2.2,stone,"Stupa drum");
+     const dome=new THREE.Mesh(new THREE.SphereGeometry(3.9,24,12,0,Math.PI*2,0,Math.PI/2),stone);dome.position.set(0,3.1,0);dome.castShadow=true;dome.userData.feature='Stupa dome';scene.add(dome);parts.push(dome);
+     box(0,6.4,0,.8,4.2,.8,inferred,"Harmika");
+     for(let i=0;i<4;i++)box(0,8.6+i*.35,0,2.2-i*.35,.22,2.2-i*.35,speculative,"Chattravali");
   }
   const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let downX=0,downY=0;
   const down=(e:PointerEvent)=>{downX=e.clientX;downY=e.clientY};const click=(e:PointerEvent)=>{if(Math.hypot(e.clientX-downX,e.clientY-downY)>6)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(parts)[0];if(hit)onSelect(hit.object.userData.feature)};
@@ -54,6 +73,6 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   let frame=0;const draw=()=>{controls.autoRotate=rotation.current;controls.update();renderer.render(scene,camera);frame=requestAnimationFrame(draw)};draw();
   return()=>{disposed=true;cancelAnimationFrame(frame);resize.disconnect();controls.dispose();controlsRef.current=null;renderer.domElement.removeEventListener("pointerdown",down);renderer.domElement.removeEventListener("pointerup",click);scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}});renderer.dispose();renderer.domElement.remove()};
  },[monument,modelURL,intact,stage,onSelect]);
- if(!modelURL&&!['hampi','konark'].includes(monument))return <div className="viewer"><div className="empty"><h3>No 3D model added yet</h3><p>Add a self-contained GLB file in Manage places.</p></div></div>;
+ if(!modelURL&&!['hampi','konark','modhera','nalanda','shanti-stupa'].includes(monument))return <div className="viewer"><div className="empty"><h3>No 3D model added yet</h3><p>Add a self-contained GLB file in Manage places.</p></div></div>;
  return <><div className="viewer" ref={host}>{error&&<div className="empty"><h3>{modelURL?'This model could not be loaded':'3D is unavailable in this browser'}</h3><p>{modelURL?'Choose a valid, self-contained GLB file.':'Enable WebGL or explore the photographs and history tabs.'}</p></div>}</div><div className="viewer-tools"><button title="Zoom in" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(.85).add(c.target);c.update()}}}><ZoomIn size={18}/></button><button title="Zoom out" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(1.15).add(c.target);c.update()}}}><ZoomOut size={18}/></button><button title="Reset camera" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.set(24,19,28);c.target.set(0,3,0);c.update()}}}><RotateCcw size={18}/></button></div></>;
 }
