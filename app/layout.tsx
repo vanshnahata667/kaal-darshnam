@@ -5,9 +5,6 @@ import "./login.css";
 export const metadata: Metadata = {
   title: "Kaal-Darshan | India's heritage, across time",
   description: "Explore India's heritage through history and evidence-labelled 3D interpretations.",
-  other: {
-    "codex-preview": "development",
-  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

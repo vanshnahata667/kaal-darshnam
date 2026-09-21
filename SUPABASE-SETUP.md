@@ -64,3 +64,10 @@ Create a second test user and verify they cannot see the first user's saved plac
 Sign out and confirm the site returns to the login page.
 
 You retain owner access to the dashboard. Users never receive it.
+
+## 6. Apply security hardening
+
+In your project's SQL Editor, review and run `supabase/security-hardening.sql`
+after the base schema. It adds validation and tighter private upload rules.
+This migration has passed local database tests but has not been applied to your
+hosted project automatically. See `SECURITY.md` for owner settings and limitations.
