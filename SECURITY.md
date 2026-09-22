@@ -47,6 +47,11 @@ Enable owner MFA and keep all admin credentials out of the app.
 
 ## Known boundaries
 
+- Optional Firestore integration reads only published editorial content. It is
+  not a private backup or a replacement for Supabase RLS. Deploy and test
+  `firestore.rules` before enabling it; see `FIREBASE-SETUP.md`. No Supabase
+  bearer token or private user data is sent to Firestore.
+
 - Live two-account isolation and storage uploads require owner-created test users;
   mocked browser tests cannot prove live RLS deployment or user email confirmation.
 - Authenticated users can call Supabase directly. RLS and database triggers are

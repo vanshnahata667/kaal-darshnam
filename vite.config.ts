@@ -60,6 +60,7 @@ export default defineConfig(async ({mode}) => {
 
   return {
     define: {
+      'process.env.FIREBASE_PROJECT_ID': JSON.stringify(environment.FIREBASE_PROJECT_ID || ''),
       'process.env.SUPABASE_URL': JSON.stringify(loadEnv(mode, process.cwd(), '').SUPABASE_URL || ''),
       'process.env.SUPABASE_PUBLISHABLE_KEY': JSON.stringify(loadEnv(mode, process.cwd(), '').SUPABASE_PUBLISHABLE_KEY || ''),
       'process.env.GOOGLE_MAPS_API_KEY': JSON.stringify(loadEnv(mode, process.cwd(), '').GOOGLE_MAPS_API_KEY || '')

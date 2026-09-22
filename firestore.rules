@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // This single document is intentionally public editorial content.
+    // Never store account data, private notes, uploads or secrets here.
+    match /heritage_catalogue/current {
+      allow get: if resource.data.published == true;
+      allow list, create, update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

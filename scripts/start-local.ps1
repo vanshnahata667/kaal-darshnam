@@ -14,12 +14,12 @@ function Test-HeritageServer {
 
 try {
     if (Test-HeritageServer) {
-        Write-Host "Kaal-Darshan is already running: $url/login"
+        Write-Host "Kaal Darshanam is already running: $url/login"
         if (!$NoBrowser) { Start-Process "$url/login" }
         exit 0
     }
     $listener = Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue
-    if ($listener) { throw 'Port 5173 is used by another application. Close that application before starting Kaal-Darshan.' }
+    if ($listener) { throw 'Port 5173 is used by another application. Close that application before starting Kaal Darshanam.' }
     $node = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
     if (!$node) { throw 'Install Node.js 22.13 or newer, then run start-local.cmd again.' }
     if (!(Test-Path -LiteralPath 'node_modules/vinext/dist/cli.js')) {
@@ -37,7 +37,7 @@ try {
     $log = Join-Path $root "outputs/server-$stamp.log"
     $errorLog = Join-Path $root "outputs/server-$stamp-error.log"
     $server = Start-Process -FilePath $node -ArgumentList 'scripts/run-framework.mjs','dev','--host','127.0.0.1' -WorkingDirectory $root -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $errorLog -PassThru
-    Write-Host 'Starting Kaal-Darshan...'
+    Write-Host 'Starting Kaal Darshanam...'
     $ready = $false
     for ($attempt = 0; $attempt -lt 60; $attempt++) {
         if (Test-HeritageServer) { $ready = $true; break }
@@ -45,7 +45,7 @@ try {
         Start-Sleep -Seconds 2
     }
     if (!$ready) { throw "The server is still starting. Check $log and $errorLog before retrying." }
-    Write-Host "Kaal-Darshan is ready: $url/login"
+    Write-Host "Kaal Darshanam is ready: $url/login"
     Write-Host 'The server runs in the background until this computer shuts down.'
     if (!$NoBrowser) { Start-Process "$url/login" }
 } catch {

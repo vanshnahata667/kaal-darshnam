@@ -1,4 +1,4 @@
-# kaal-darshnam
+# Kaal Darshanam
 
 Kaal-Darshan: a browser-based heritage explorer with login, sourced histories,
 photographs, video embeds, timelines, an interactive globe and illustrative 3D.
@@ -55,3 +55,19 @@ These do not replace live authentication, storage and two-user RLS tests.
 See [GITHUB-SETUP.md](GITHUB-SETUP.md) for publishing the source repository.
 See [SECURITY.md](SECURITY.md) for security checks and the required owner-only
 Supabase hardening migration.
+
+## Kaal Darshanam updates
+
+The product is now named Kaal Darshanam. Location search, map zoom/top-view
+controls, clearer historical sections and improved schematic 3D materials are
+included. These remain illustrative models, not photogrammetric scans.
+
+Videos include an optional spherical player for your own equirectangular uploads.
+The Google Arts & Culture 360 film includes Hampi and other cities; dedicated
+verified 360 videos for every monument are not yet available in this dataset.
+Ordinary films remain labelled separately. Sources retain their rights.
+360 film source: https://www.youtube.com/watch?v=xf_MlReoHLM
+
+Firestore can supply an optional published catalogue; Supabase remains the
+private account database. Follow [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
+Firebase project configuration and hosted rules deployment are still required.

@@ -7,7 +7,7 @@ export async function authenticatedClient(request:Request){
  const token=header.slice(7);
  const {supabaseUrl,supabaseKey}=publicConfiguration();
  if(!supabaseUrl||!supabaseKey)return null;
- const client=createClient(supabaseUrl,supabaseKey,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+ const client=createClient(supabaseUrl,supabaseKey,{global:{headers:{Authorization:`Bearer ${token}`},fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.any([AbortSignal.timeout(15000),...(init?.signal?[init.signal]:[])])})},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
  const {data,error}=await client.auth.getUser(token);
  return error||!data.user?null:{client,user:data.user};
 }

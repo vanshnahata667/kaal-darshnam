@@ -17,7 +17,7 @@ const jpeg=new Uint8Array(20);jpeg.set([255,216,255]);assert.equal(verifiedMedia
 const original=process.env.SUPABASE_PUBLISHABLE_KEY;process.env.SUPABASE_PUBLISHABLE_KEY='sb_secret_not_for_browser';assert.equal(publicConfiguration().supabaseKey,'');
 if(original===undefined)delete process.env.SUPABASE_PUBLISHABLE_KEY;else process.env.SUPABASE_PUBLISHABLE_KEY=original;
 const root='http://localhost:5173';
-for(const path of ['/api/library','/api/preferences','/api/media']){
+for(const path of ['/api/library','/api/preferences','/api/media','/api/catalogue']){
  const response=await fetch(root+path,{method:path.endsWith('media')?'POST':'GET',headers:{'x-user-id':uid}});
  assert.equal(response.status,401,path+' must reject forged user IDs');
 }

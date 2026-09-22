@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {parseFirestoreCatalogue,readFirestoreCatalogue} from '../lib/firestore-catalogue.ts';
+const place={id:'test',name:'Test',region:'India',era:'1000',dynasty:'Test',image:'/heritage/hampi.jpg',alt:'Test',credit:'Test',imageSource:'https://example.com',source:'https://example.com',summary:'Test',history:'Test',damage:'Test'};
+const content={places:[place],timelines:{test:Array.from({length:4},(_,i)=>({event_id:`e${i}`,monument_id:'test',year_range:'1000',actor:'Test',description:'Test',evidence_type:'inferred',source_url:'https://example.com'}))},media:{}};
+const doc=value=>({fields:{published:{booleanValue:true},contentJSON:{stringValue:JSON.stringify(value)}}});
+assert.equal(parseFirestoreCatalogue(doc(content)).places.length,1);
+assert.throws(()=>parseFirestoreCatalogue({fields:{published:{booleanValue:false}}}));
+assert.throws(()=>parseFirestoreCatalogue(doc({...content,media:{test:[]}})));
+assert.throws(()=>parseFirestoreCatalogue(doc({...content,places:[{...place,source:'javascript:alert(1)'}]})));
+await assert.rejects(()=>readFirestoreCatalogue('../private'));
+await assert.rejects(()=>readFirestoreCatalogue('test-project',async()=>new Response('',{status:403})));
+const result=await readFirestoreCatalogue('test-project',async(url,options)=>{assert.ok(url.startsWith('https://firestore.googleapis.com/'));assert.equal(options.headers,undefined);return Response.json(doc(content))});
+assert.equal(result.places[0].id,'test');
+console.log('Firestore adapter tests passed: published-only, validation, private media rejection, URL isolation and provider failure. Hosted rules not tested.');
