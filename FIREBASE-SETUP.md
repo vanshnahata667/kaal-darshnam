@@ -24,7 +24,9 @@ Two databases do not inherently make an application more secure.
    navigation without the bearer token returns 401. The existing local catalogue
    remains available if Firestore is missing or unavailable; private Supabase
    failures are not bypassed. Saved personal edits take precedence over published
-   catalogue entries. The MVP displays up to 100 places.
+   catalogue entries. The focused edition displays only Shanti Stupa, Konark,
+   Nalanda and Kandariya Mahadev; other document entries are ignored. Old
+   UNESCO-derived editorial snapshots fall back to the updated local sources.
 
 **Public means public:** anyone can read that published Firestore document
 directly. Never include user IDs, email, private notes, signed upload URLs or

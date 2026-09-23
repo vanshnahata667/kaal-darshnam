@@ -1,6 +1,6 @@
 # Kaal Darshanam
 
-Kaal-Darshan: a browser-based heritage explorer with login, sourced histories,
+Kaal Darshanam: a browser-based heritage explorer with login, sourced histories,
 photographs, video embeds, timelines, an interactive globe and illustrative 3D.
 
 ## Local setup
@@ -28,12 +28,12 @@ on submission. Google sign-in is shown only when enabled in Supabase.
 
 ## Places and media
 
-Eight places: Hampi, Konark, Sanchi, Shore Temple, Khajuraho, Modhera Sun Temple,
-ancient Nalanda Mahavihara and Shanti Stupa in Leh. Sources and photo licensing
+Four places only: Shanti Stupa in Leh, Konark Temple, ancient Nalanda,
+and Kandariya Mahadev Temple in Khajuraho. Sources and photo licensing
 links are attached to entries. Shanti Stupa is a modern living monument, not a ruin.
 Videos are external publisher embeds; their availability is outside this app's control.
 Third-party media retain their original licenses and are not relicensed by this repository.
-The eight curated photographs are included in `public/heritage` for reliable
+The four curated photographs are included in `public/heritage` for reliable
 local display. Their authors, original file pages and licenses remain in each
 place's photo credits. `scripts/cache-heritage-images.mjs` restores missing copies.
 
@@ -63,11 +63,27 @@ controls, clearer historical sections and improved schematic 3D materials are
 included. These remain illustrative models, not photogrammetric scans.
 
 Videos include an optional spherical player for your own equirectangular uploads.
-The Google Arts & Culture 360 film includes Hampi and other cities; dedicated
-verified 360 videos for every monument are not yet available in this dataset.
+Dedicated verified 360 videos for these monuments are not yet in this dataset.
 Ordinary films remain labelled separately. Sources retain their rights.
-360 film source: https://www.youtube.com/watch?v=xf_MlReoHLM
 
 Firestore can supply an optional published catalogue; Supabase remains the
 private account database. Follow [FIREBASE-SETUP.md](FIREBASE-SETUP.md).
 Firebase project configuration and hosted rules deployment are still required.
+
+## Four-place editorial update
+
+Historical sources now come from Odisha government and tourism, MP Tourism,
+District Nalanda, PIB's ASI excavation reporting, and District Leh. No historical
+citations or publisher films from UNESCO remain in the active catalogue.
+Wikimedia photographs retain their original author and license credits.
+
+All four places have procedural 3D models. Konark and Nalanda include clearly
+hypothetical upper structures; Shanti Stupa and Kandariya remain standing across
+timeline states. Models are not measured scans, and fine sculptural detail is
+not reproduced as archaeological evidence.
+
+Older saved collections are filtered to these four IDs. Old UNESCO-derived
+editorial snapshots are replaced in the displayed collection. Existing remote
+uploads are not permanently deleted; removed-site uploads are hidden. Optional
+Firestore content cannot reintroduce other places. New-place creation is disabled
+for this focused edition. Hosted Supabase hardening still requires owner action.
