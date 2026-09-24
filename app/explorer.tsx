@@ -2,7 +2,7 @@
 import PanoramaVideo from './panorama-video';
 import PlaceGallery from './place-gallery';
 import {galleryPhotos} from './gallery-data';
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { ArrowUpRight, ArrowLeft, Search, ScanLine, Box, Clock3, BookOpen, X, Play, Pause, Bookmark, Images, ExternalLink, Landmark, ShieldCheck } from "lucide-react";
 import Viewer from "./viewer";
 import { sources } from "./heritage";
@@ -13,9 +13,10 @@ import {placeContext} from './additional-heritage';
 import HeritageVideo from './heritage-video';
 import {Globe2,Share2,CheckCircle2,Headphones} from 'lucide-react';
 export default function Explorer({user,onSignOut}:{user:{name:string;email:string};onSignOut:()=>Promise<void>}) {
+    const syncedPreferences=useRef('');
     const [library,setLibrary]=useState<Library>(initialLibrary),[editing,setEditing]=useState(false),[storageNotice,setStorageNotice]=useState(''),[loadAttempt,setLoadAttempt]=useState(0);
     const [ready,setReady]=useState(false),[atlas,setAtlas]=useState(false),[visited,setVisited]=useState<string[]>([]),[notice,setNotice]=useState(''),[country,setCountry]=useState('All countries');
-    useEffect(()=>{let active=true;setReady(false);setStorageNotice('');Promise.all([loadLibrary(),loadPreferences()]).then(([content,prefs])=>{if(active){setLibrary(content);setSaved(prefs.saved);setVisited(prefs.visited);setReady(true)}}).catch(()=>{if(active)setStorageNotice('Your Supabase data could not load. Check the database setup and connection before editing.')});const id=new URLSearchParams(location.hash.slice(1)).get('place');if(id)setSelected(id);return()=>{active=false;window.speechSynthesis?.cancel()}},[loadAttempt]);
+    useEffect(()=>{let active=true;setReady(false);setStorageNotice('');Promise.all([loadLibrary(),loadPreferences()]).then(([content,prefs])=>{if(active){syncedPreferences.current=JSON.stringify(prefs);setLibrary(content);setSaved(prefs.saved);setVisited(prefs.visited);setReady(true)}}).catch(()=>{if(active)setStorageNotice('Your Supabase data could not load. Check the database setup and connection before editing.')});const id=new URLSearchParams(location.hash.slice(1)).get('place');if(id)setSelected(id);return()=>{active=false;window.speechSynthesis?.cancel()}},[loadAttempt]);
     const narrate=()=>{window.speechSynthesis?.cancel();const speech=new SpeechSynthesisUtterance(monument.history);speech.lang='en-IN';window.speechSynthesis?.speak(speech)};
     const media = useMemo(() => Object.fromEntries(Object.entries(library.media).map(([id, items]) => [id, items.map(item => ({ ...item, url: item.blob ? URL.createObjectURL(item.blob) : item.url || '' }))])), [library]);
     useEffect(() => () => { Object.values(media).flat().forEach(m => { if (m.blob)
@@ -23,7 +24,23 @@ export default function Explorer({user,onSignOut}:{user:{name:string;email:strin
     const monuments = useMemo(() => library.places.map(p => ({ ...p, image: media[p.id]?.find(m => m.type === 'image')?.url || p.image })), [library, media]);
     const events = library.timelines;
     const [selected, setSelected] = useState<string | null>(null), [query, setQuery] = useState(""), [filter, setFilter] = useState("All places"), [tab, setTab] = useState("3D experience"), [stage, setStage] = useState(3), [intact, setIntact] = useState(false), [rotate, setRotate] = useState(false), [feature, setFeature] = useState("Pillared hall"), [modal, setModal] = useState<string | null>(null), [saved, setSaved] = useState<string[]>([]), [question, setQuestion] = useState(""), [answer, setAnswer] = useState("");
-    useEffect(()=>{if(!ready)return;const timer=setTimeout(()=>savePreferences(saved,visited).catch(()=>setStorageNotice('Your changes could not sync to Supabase. Check your connection.')),500);return()=>clearTimeout(timer)},[saved,visited,ready]);
+    useEffect(()=>{if(!ready)return;const snapshot=JSON.stringify({saved,visited});if(snapshot===syncedPreferences.current)return;let active=true;const timer=setTimeout(()=>savePreferences(saved,visited).then(()=>{if(active){syncedPreferences.current=snapshot;setStorageNotice('')}}).catch(()=>{if(active)setStorageNotice('Your changes could not sync to Supabase. Check your connection.')}),500);return()=>{active=false;clearTimeout(timer)}},[saved,visited,ready]);
+    useEffect(()=>{
+      if(!ready||editing)return;
+      let active=true,busy=false;
+      const refresh=async()=>{
+        // Do not replace an editor draft or unsaved local preferences with remote data.
+        if(busy||document.visibilityState==='hidden'||JSON.stringify({saved,visited})!==syncedPreferences.current)return;
+        busy=true;
+        try{const [content,prefs]=await Promise.all([loadLibrary(),loadPreferences()]);if(active){syncedPreferences.current=JSON.stringify(prefs);setLibrary(content);setSaved(prefs.saved);setVisited(prefs.visited);setStorageNotice('')}}
+        catch{if(active)setStorageNotice('Live updates are temporarily unavailable. Your current view is unchanged.')}
+        finally{busy=false}
+      };
+      const timer=window.setInterval(refresh,30000);
+      window.addEventListener('focus',refresh);window.addEventListener('online',refresh);
+      document.addEventListener('visibilitychange',refresh);
+      return()=>{active=false;clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',refresh)};
+    },[ready,editing,saved,visited]);
     useEffect(()=>{if(!modal&&!editing)return;const previous=document.activeElement as HTMLElement;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';const dialog=document.querySelector<HTMLElement>('.modal');dialog?.querySelector<HTMLElement>('button,input,select,textarea,a')?.focus();const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){setModal(null);setEditing(false)}if(event.key==='Tab'&&dialog){const items=Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]),input,select,textarea,a[href]'));const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}};document.addEventListener('keydown',key);return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);previous?.focus()}},[modal,editing]);
     const monument = monuments.find(m => m.id === selected) || monuments[0];
     const list = monuments.filter(m => (m.name + " " + m.region + " " + m.era + " " + m.dynasty).toLowerCase().includes(query.toLowerCase()) && (filter !== "Saved places" || saved.includes(m.id)));
