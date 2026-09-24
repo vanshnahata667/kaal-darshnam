@@ -36,7 +36,7 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async ({mode}) => {
+export default defineConfig(async ({mode,command}) => {
   const environment=loadEnv(mode,process.cwd(),'');
   const publicKey=environment.SUPABASE_PUBLISHABLE_KEY||'';
   if(publicKey&&!publicKey.startsWith('sb_publishable_')){
@@ -59,12 +59,12 @@ export default defineConfig(async ({mode}) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    define: {
+    define: command==='serve' ? {
       'process.env.FIREBASE_PROJECT_ID': JSON.stringify(environment.FIREBASE_PROJECT_ID || ''),
       'process.env.SUPABASE_URL': JSON.stringify(loadEnv(mode, process.cwd(), '').SUPABASE_URL || ''),
       'process.env.SUPABASE_PUBLISHABLE_KEY': JSON.stringify(loadEnv(mode, process.cwd(), '').SUPABASE_PUBLISHABLE_KEY || ''),
       'process.env.GOOGLE_MAPS_API_KEY': JSON.stringify(loadEnv(mode, process.cwd(), '').GOOGLE_MAPS_API_KEY || '')
-    },
+    } : {},
     server: {
       fs:{deny:['.env','.env.*','**/.env','**/.env.*','**/.git/**','**/*.{crt,pem,key}']},
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),

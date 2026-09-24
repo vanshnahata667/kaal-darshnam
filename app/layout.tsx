@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./login.css";
+import "./gallery.css";
 
 export const metadata: Metadata = {
   title: "Kaal Darshanam | India's heritage, across time",
