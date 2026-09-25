@@ -34,6 +34,7 @@ for(const [name,id,video] of [['Shanti Stupa','shanti-stupa','tJz2gZLHjgU'],['Ko
  const canvas=page.locator('.viewer canvas');await canvas.waitFor();await page.waitForTimeout(800);
  const pixels=await canvas.evaluate(c=>{const gl=c.getContext('webgl2');const b=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,b);const colors=new Set();for(let i=0;i<b.length;i+=160)colors.add(b[i]+','+b[i+1]+','+b[i+2]);return colors.size;});assert.ok(pixels>20,id+' nonblank model');
  await page.screenshot({path:'outputs/'+id+'-desktop.png'});
+ assert.equal(await page.locator('.timebar').isVisible(),false,'3D timeline controls must stay hidden');
  const before=await canvas.evaluate(c=>c.toDataURL());await page.getByTitle('Play camera tour').click();await page.waitForTimeout(700);assert.notEqual(before,await canvas.evaluate(c=>c.toDataURL()));await page.getByTitle('Pause camera tour').click();
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await canvas.screenshot({path:'outputs/'+id+'-canvas-mobile.png'});await page.screenshot({path:'outputs/'+id+'-mobile.png'});await page.setViewportSize({width:1440,height:1000});
  await page.getByRole('button',{name:'Photographs',exact:true}).click();assert.equal(await page.locator('.gallery-thumbnails button').count(),3);
