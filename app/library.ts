@@ -35,7 +35,20 @@ export async function loadLibrary():Promise<Library>{
  const media=Object.fromEntries(Object.entries(saved?.media||{}).filter(([id])=>allowed.has(id)));
  return resolveMedia({places:selected,timelines,media});
 }
-async function resolveMedia(value:Library){const {supabase}=await signedInUser();const media:Library['media']={};for(const [id,items]of Object.entries(value.media)){media[id]=await Promise.all(items.map(async item=>{if(!item.storagePath)return item;const {data,error}=await supabase.storage.from('heritage-media').createSignedUrl(item.storagePath,86400);if(error)throw error;return {...item,url:data.signedUrl}}))}return {...value,media}}
+async function resolveMedia(value:Library){
+ const entries=Object.entries(value.media);
+ if(!entries.length)return value;
+ let supabase;
+ try{({supabase}=await signedInUser())}catch{return {...value,media:{}}}
+ const media:Library['media']={};
+ for(const [id,items]of entries){
+  media[id]=await Promise.all(items.map(async item=>{
+   if(!item.storagePath)return item;
+   try{const {data,error}=await supabase.storage.from('heritage-media').createSignedUrl(item.storagePath,86400);return error?item:{...item,url:data.signedUrl}}catch{return item}
+  }))
+ }
+ return {...value,media}
+}
 export async function storeLibrary(value:Library):Promise<Library>{const {supabase,user}=await signedInUser();const media:Library['media']={};for(const [id,items]of Object.entries(value.media)){media[id]=[];for(const item of items){let storagePath=item.storagePath;if(item.blob){storagePath=`${user.id}/${id}/${item.id}`;const uploaded=await accountRequest<{storagePath:string}>(`/api/media?placeId=${encodeURIComponent(id)}&mediaId=${encodeURIComponent(item.id)}`,{method:'POST',body:item.blob});storagePath=uploaded.storagePath}media[id].push({id:item.id,name:item.name,type:item.type,...(storagePath?{storagePath}:{url:item.url})})}}const stored={...value,media};await accountRequest('/api/library',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(stored)});return resolveMedia(stored)}
 export async function loadPreferences(){
  let values:{saved:string[];visited:string[]};
