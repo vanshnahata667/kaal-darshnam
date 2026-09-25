@@ -1,6 +1,7 @@
+import {apiURL} from './api-url';
 export async function googleSignInEnabled(): Promise<boolean> {
   try {
-    const configResponse = await fetch('/api/config', {signal: AbortSignal.timeout(10000)});
+    const configResponse = await fetch(apiURL('/api/config'), {signal: AbortSignal.timeout(10000)});
     if (!configResponse.ok) return false;
     const config = await configResponse.json() as {supabaseUrl?:string;supabaseKey?:string};
     if (!config.supabaseUrl || !config.supabaseKey) return false;
