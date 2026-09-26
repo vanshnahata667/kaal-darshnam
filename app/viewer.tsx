@@ -14,7 +14,7 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const scene=new THREE.Scene();scene.background=new THREE.Color("#e7eae6");scene.fog=new THREE.Fog("#e7eae6",45,95);
   const camera=new THREE.PerspectiveCamera(38,el.clientWidth/el.clientHeight,.1,150);
   const cameraStart=monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17);
-  const cameraTarget=monument==='konark'&&intact?new THREE.Vector3(0,6.5,0):monument==='khajuraho'?new THREE.Vector3(0,5,0):new THREE.Vector3(0,3,0);
+  const cameraTarget=monument==='konark'?new THREE.Vector3(0,intact?5.5:1.8,0):monument==='khajuraho'?new THREE.Vector3(0,3.5,0):monument==='nalanda'?new THREE.Vector3(0,1.5,0):new THREE.Vector3(0,3.5,0);
   const framing=monument==='nalanda'?.88:monument==='khajuraho'?.91:monument==='shanti-stupa'?.9:.87;
   camera.position.copy(cameraTarget).add(cameraStart.clone().sub(cameraTarget).multiplyScalar(framing));
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;el.appendChild(renderer.domElement);
@@ -32,6 +32,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const parts:THREE.Mesh[]=[];
   function box(x:number,y:number,z:number,w:number,h:number,d:number,mat:THREE.Material=stone,name="Pillared hall"){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);return mesh}
   function cylinder(x:number,y:number,z:number,r:number,h:number,mat:THREE.Material=stone,name="Pillared hall"){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);return mesh}
+  function setting(x:number,y:number,z:number,w:number,h:number,d:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.receiveShadow=true;scene.add(mesh);return mesh}
+  const earth=new THREE.MeshStandardMaterial({color:0xa69b82,roughness:1});
+  const path=new THREE.MeshStandardMaterial({color:0xc1b9a4,roughness:1});
+  const grass=new THREE.MeshStandardMaterial({color:0x829172,roughness:1});
+  const boundary=new THREE.MeshStandardMaterial({color:0x79736a,roughness:1});
   const full=intact || stage===0;
   if(modelURL){new GLTFLoader().load(modelURL,gltf=>{if(disposed)return;const bounds=new THREE.Box3().setFromObject(gltf.scene),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());const scale=14/Math.max(size.x,size.y,size.z);gltf.scene.position.copy(center).multiplyScalar(-scale);gltf.scene.position.y-=bounds.min.y*scale-center.y*scale;gltf.scene.scale.setScalar(scale);gltf.scene.traverse(object=>{if(object instanceof THREE.Mesh){object.castShadow=true;object.receiveShadow=true;object.userData.feature='Uploaded model';parts.push(object)}});scene.add(gltf.scene)},undefined,()=>{if(!disposed)setError(true)})}
   else {
@@ -52,6 +57,13 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     cylinder(x,y+h,z,r*.38,.18,gold,name);cylinder(x,y+h+.32,z,.09,.5,gold,name);
    }
    if(monument==='konark'){
+    setting(1,.015,2.3,20,.12,19,grass);
+    setting(1,.09,2.3,16,.06,15,earth);
+    setting(9.7,.105,0,3,.06,2.2,path);
+    for(const x of [-8.8,10.8])for(const z of [-6.8,11.3])setting(x,.26,z,.32,.42,.32,boundary);
+    for(const z of [-6.8,11.3])setting(1,.16,z,19.5,.2,.25,boundary);
+    setting(-8.8,.16,2.3,.25,.2,18.5,boundary);
+    for(const z of [-2.9,6.3])setting(10.8,.16,z,.25,.2,8.3,boundary);
     for(let i=0;i<4;i++)box(0,.2+i*.28,0,14-i*.38,.3,9-i*.3,edge,"Chariot platform");
     box(2.4,3,0,5.2,3.5,5.2,stone,"Assembly hall");
     for(let i=0;i<12;i++)box(2.4,4.9+i*.28,0,6-i*.4,.27,6-i*.4,stone,"Assembly hall roof");
@@ -80,6 +92,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     for(const z of [7,9])box(0,2.23,z,5.6,.2,.5,stone,"Dance hall lintel");
     for(const x of [-2,2])box(x,2.23,8,.45,.2,2.4,stone,"Dance hall lintel");
    }else if(monument==='khajuraho'){
+    setting(0,.005,0,17,.1,22,grass);
+    setting(0,.065,9.2,3,.06,3.6,path);
+    for(const z of [-11,11])setting(0,.13,z,17,.22,.22,boundary);
+    setting(-8.5,.13,0,.22,.22,22,boundary);
+    for(const z of [-6.3,6.3])setting(8.5,.13,z,.22,.22,9.4,boundary);
     for(let i=0;i<5;i++)box(0,.15+i*.25,0,9-i*.2,.25,17-i*.25,edge,"Raised platform");
     box(0,2.4,-3,5,2.8,5,stone,"Sanctuary");
     box(0,2.1,1,5.6,2.3,4,stone,"Great hall");
@@ -98,6 +115,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     for(const z of [-5,-3,0,2])for(const side of [-1,1])box(side*2.68,3.02,z,.45,.18,.6,edge,"Carved stone courses");
     for(let i=0;i<8;i++)box(0,1.15-i*.14,6.3+i*.25,2,.18,.3,edge,"Entrance stairs");
    }else if(monument==='nalanda'){
+    setting(1,.005,-.5,20,.1,17,earth);
+    for(const z of [-9,8])setting(1,.12,z,20,.24,.28,boundary);
+    setting(-9,.12,-.5,.28,.24,17,boundary);
+    for(const z of [-6.5,4.5])setting(11,.12,z,.28,.24,5.1,boundary);
+    setting(10,.065,6,3,.06,3,path);
     box(-2,.15,-1,13,.3,14,edge,"Monastery foundation");
     for(const x of [-7,3])for(let z=-6;z<=4;z+=2){box(x,.9,z,1.8,1.4,.25,stone,"Monastic cells");box(x-.85,.9,z+1,.22,1.4,2,stone,"Monastic cells");box(x+.85,.9,z+1,.22,1.4,2,stone,"Monastic cells")}
     for(const x of [-7,3])for(let z=-6;z<=4;z+=2)box(x,.3,z+.7,1.7,.17,1.5,edge,"Monastic cell threshold");
@@ -113,6 +135,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     if(full)spire(7,3.1,1,1.6,4,speculative,"Upper tower");
     for(let y=.55;y<2.8;y+=.22)box(7,y,4-(y*.6),Math.max(2.5,5.4-y),.04,.05,edge,"Brick courses");
    }else if(monument==='shanti-stupa'){
+    setting(0,-.015,0,16,.12,16,earth);
+    for(const z of [-8,8])setting(0,.16,z,16,.35,.24,plaster);
+    setting(-8,.16,0,.24,.35,16,plaster);
+    for(const z of [-5.3,5.3])setting(8,.16,z,.24,.35,5.4,plaster);
+    setting(8,.055,0,3,.04,2.6,path);
     for(let i=0;i<4;i++)cylinder(0,.16+i*.22,0,6.2-i*.18,.23,plaster,"Circular terrace");
     cylinder(0,1.3,0,4.6,1.1,plaster,"Lower drum");cylinder(0,2.2,0,4.1,.8,plaster,"Upper terrace");
     for(let i=0;i<48;i++){const a=i*Math.PI/24;cylinder(Math.cos(a)*4.45,2.25,Math.sin(a)*4.45,.05,.6,plaster,"Terrace railing")}
@@ -129,10 +156,10 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let downX=0,downY=0;
   const down=(e:PointerEvent)=>{downX=e.clientX;downY=e.clientY};const click=(e:PointerEvent)=>{if(Math.hypot(e.clientX-downX,e.clientY-downY)>6)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(parts)[0];if(hit)onSelect(hit.object.userData.feature)};
   renderer.domElement.addEventListener("pointerdown",down);renderer.domElement.addEventListener("pointerup",click);
-  const resize=new ResizeObserver(()=>{if(!el.clientWidth||!el.clientHeight)return;camera.aspect=el.clientWidth/el.clientHeight;camera.zoom=camera.aspect<1?.9:1;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight)});resize.observe(el);
+  const resize=new ResizeObserver(()=>{if(!el.clientWidth||!el.clientHeight)return;camera.aspect=el.clientWidth/el.clientHeight;camera.zoom=camera.aspect<1?(monument==='konark'||monument==='shanti-stupa'?.52:.6):.86;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight)});resize.observe(el);
   let frame=0;const draw=()=>{controls.autoRotate=rotation.current;controls.update();renderer.render(scene,camera);frame=requestAnimationFrame(draw)};draw();
   return()=>{disposed=true;cancelAnimationFrame(frame);resize.disconnect();controls.dispose();controlsRef.current=null;renderer.domElement.removeEventListener("pointerdown",down);renderer.domElement.removeEventListener("pointerup",click);scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}});texture.dispose();renderer.dispose();renderer.domElement.remove()};
  },[monument,modelURL,intact,stage,onSelect]);
  if(!modelURL&&!['konark','khajuraho','nalanda','shanti-stupa'].includes(monument))return <div className="viewer"><div className="empty"><h3>No 3D model added yet</h3><p>Add a self-contained GLB file in Manage places.</p></div></div>;
- return <><div className="viewer" ref={host}>{error&&<div className="empty"><h3>{modelURL?'This model could not be loaded':'3D is unavailable in this browser'}</h3><p>{modelURL?'Choose a valid, self-contained GLB file.':'Enable WebGL or explore the photographs and history tabs.'}</p></div>}</div><div className="viewer-tools"><button title="Zoom in" aria-label="Zoom in" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(.85).add(c.target);c.update()}}}><ZoomIn size={18}/></button><button title="Zoom out" aria-label="Zoom out" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(1.15).add(c.target);c.update()}}}><ZoomOut size={18}/></button><button title="Reset camera" aria-label="Reset camera" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.copy(monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17));c.target.set(0,monument==='konark'&&intact?6.5:monument==='khajuraho'?5:3,0);c.update()}}}><RotateCcw size={18}/></button></div></>;
+ return <><div className="viewer" ref={host}>{error&&<div className="empty"><h3>{modelURL?'This model could not be loaded':'3D is unavailable in this browser'}</h3><p>{modelURL?'Choose a valid, self-contained GLB file.':'Enable WebGL or explore the photographs and history tabs.'}</p></div>}</div><div className="viewer-tools"><button title="Zoom in" aria-label="Zoom in" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(.85).add(c.target);c.update()}}}><ZoomIn size={18}/></button><button title="Zoom out" aria-label="Zoom out" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(1.15).add(c.target);c.update()}}}><ZoomOut size={18}/></button><button title="Reset camera" aria-label="Reset camera" onClick={()=>{const c=controlsRef.current;if(c){const start=monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17);const target=new THREE.Vector3(0,monument==='konark'?(intact?5.5:1.8):monument==='khajuraho'?3.5:monument==='nalanda'?1.5:3.5,0);const framing=monument==='nalanda'?.88:monument==='khajuraho'?.91:monument==='shanti-stupa'?.9:.87;c.target.copy(target);c.object.position.copy(target).add(start.sub(target).multiplyScalar(framing));c.update()}}}><RotateCcw size={18}/></button></div></>;
 }
