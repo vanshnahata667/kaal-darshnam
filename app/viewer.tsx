@@ -12,10 +12,13 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   if(!host.current)return;setError(false); const el=host.current; let renderer:THREE.WebGLRenderer;let disposed=false;
   try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true})}catch{queueMicrotask(()=>{if(!disposed)setError(true)});return}
   const scene=new THREE.Scene();scene.background=new THREE.Color("#e7eae6");scene.fog=new THREE.Fog("#e7eae6",45,95);
-  const camera=new THREE.PerspectiveCamera(38,el.clientWidth/el.clientHeight,.1,150);camera.position.set(20,15,24);
+  const camera=new THREE.PerspectiveCamera(38,el.clientWidth/el.clientHeight,.1,150);
+  const cameraStart=monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17);
+  const cameraTarget=monument==='konark'&&intact?new THREE.Vector3(0,6.5,0):monument==='khajuraho'?new THREE.Vector3(0,5,0):new THREE.Vector3(0,3,0);
+  camera.position.copy(cameraStart);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;el.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("aria-label","Interactive schematic temple reconstruction");
-  const controls=new OrbitControls(camera,renderer.domElement);controlsRef.current=controls;controls.target.set(0,3,0);controls.enableDamping=true;controls.minDistance=12;controls.maxDistance=55;controls.maxPolarAngle=Math.PI/2.1;controls.autoRotateSpeed=.8;
+  const controls=new OrbitControls(camera,renderer.domElement);controlsRef.current=controls;controls.target.copy(cameraTarget);controls.enableDamping=true;controls.minDistance=8;controls.maxDistance=55;controls.maxPolarAngle=Math.PI/2.1;controls.autoRotateSpeed=.8;
   scene.add(new THREE.HemisphereLight(0xffffff,0x7b8477,2.5));const sun=new THREE.DirectionalLight(0xfff8e6,3.5);sun.position.set(-14,25,14);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-22,right:22,top:22,bottom:-22});scene.add(sun);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0xdfe4dd,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-.08;ground.receiveShadow=true;scene.add(ground);
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;
@@ -24,7 +27,7 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const context=textureCanvas.getContext('2d')!;const pixels=context.createImageData(256,256);
   let seed=42;for(let i=0;i<pixels.data.length;i+=4){seed=(seed*1664525+1013904223)>>>0;const value=165+(seed%65);pixels.data.set([value,value,value,255],i)}context.putImageData(pixels,0,0);
   const texture=new THREE.CanvasTexture(textureCanvas);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(3,3);
-  const stone=new THREE.MeshStandardMaterial({color:monument==='nalanda'?0xb07860:0xbfb4a0,roughness:.86,bumpMap:texture,bumpScale:.045}), edge=new THREE.MeshStandardMaterial({color:0x938a79,roughness:.95,bumpMap:texture,bumpScale:.035}), inferred=new THREE.MeshStandardMaterial({color:0x94ac9d,roughness:.9}), speculative=new THREE.MeshStandardMaterial({color:0x8d9dab,roughness:.8});
+  const stone=new THREE.MeshStandardMaterial({color:monument==='nalanda'?0x9b5641:monument==='shanti-stupa'?0xe5e1d5:monument==='konark'?0x766456:0x9c826b,roughness:.92,bumpMap:texture,bumpScale:.075}), edge=new THREE.MeshStandardMaterial({color:monument==='nalanda'?0x6f3a2d:0x62564b,roughness:.96,bumpMap:texture,bumpScale:.05}), inferred=new THREE.MeshStandardMaterial({color:0xa98c70,roughness:.9}), speculative=new THREE.MeshStandardMaterial({color:0x9d8974,roughness:.8});
   const parts:THREE.Mesh[]=[];
   function box(x:number,y:number,z:number,w:number,h:number,d:number,mat:THREE.Material=stone,name="Pillared hall"){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);return mesh}
   function cylinder(x:number,y:number,z:number,r:number,h:number,mat:THREE.Material=stone,name="Pillared hall"){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,32),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);return mesh}
@@ -37,10 +40,15 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     const mesh=new THREE.Mesh(new THREE.TorusGeometry(r,tube,8,48),mat);mesh.rotation.x=Math.PI/2;mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);return mesh;
    }
    function spire(x:number,y:number,z:number,r:number,h:number,mat:THREE.Material,name:string){
-    const profile=Array.from({length:21},(_,i)=>{const t=i/20;return new THREE.Vector2(Math.max(.06,r*Math.pow(1-t,.72)),t*h)});
-    const mesh=new THREE.Mesh(new THREE.LatheGeometry(profile,32),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);
-    for(let i=1;i<13;i++){const t=i/14;ring(x,y+t*h,z,r*Math.pow(1-t,.72),.035,edge,name)}
-    cylinder(x,y+h,z,r*.35,.18,gold,name);cylinder(x,y+h+.3,z,.09,.5,gold,name);
+    const tiers=20;
+    for(let i=0;i<tiers;i++){
+     const t=i/tiers,half=r*Math.pow(1-t,.8),next=r*Math.pow(1-(i+1)/tiers,.8);
+     const mesh=new THREE.Mesh(new THREE.CylinderGeometry(Math.max(.08,next),half,h/tiers+.015,4,1),mat);
+     mesh.rotation.y=Math.PI/4;mesh.position.set(x,y+(i+.5)*h/tiers,z);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.feature=name;scene.add(mesh);parts.push(mesh);
+     if(i%2===0){const ledge=new THREE.Mesh(new THREE.CylinderGeometry(half*1.08,half*1.08,.08,4),edge);ledge.rotation.y=Math.PI/4;ledge.position.set(x,y+i*h/tiers,z);ledge.castShadow=true;ledge.userData.feature=name;scene.add(ledge);parts.push(ledge)}
+     if(i<tiers-3&&i%2===0)for(let side=0;side<4;side++){const a=Math.PI/4+side*Math.PI/2;const relief=box(x+Math.sin(a)*half*.9,y+(i+.5)*h/tiers,z+Math.cos(a)*half*.9,Math.max(.08,half*.12),h/tiers*.5,Math.max(.08,half*.12),edge,name);relief.rotation.y=a}
+    }
+    cylinder(x,y+h,z,r*.38,.18,gold,name);cylinder(x,y+h+.32,z,.09,.5,gold,name);
    }
    if(monument==='konark'){
     for(let i=0;i<4;i++)box(0,.2+i*.28,0,14-i*.38,.3,9-i*.3,edge,"Chariot platform");
@@ -49,7 +57,12 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     cylinder(2.4,8.35,0,.65,.4,edge,"Assembly hall roof");
     for(const side of [-1,1])for(let i=0;i<7;i++){box(2.4,1.8+i*.4,side*2.66,5.4,.09,.2,edge,"Carved courses");for(let x=.3;x<5;x+=.7)box(x,2.8,side*2.7,.16,2.3,.18,edge,"Carved pilasters")}
     box(-3.4,1.6,0,4.6,.9,4.6,stone,"Sanctuary remains");
-    if(full||stage===1)spire(-3.4,2,0,2.3,full?9:4,speculative,"Upper tower");
+    if(full||stage===1){
+     box(-3.4,3.5,0,4.5,3.1,4.5,stone,"Upper tower");
+     for(let i=0;i<7;i++)box(-3.4,2.4+i*.5,0,4.8-i*.09,.12,4.8-i*.09,edge,"Upper tower");
+     spire(-3.4,5.1,0,2.3,full?10:4,speculative,"Upper tower");
+    }
+    for(const x of [-5.25,-4.15,-3.05,-1.95])for(const z of [-2.36,2.36])box(x,2.2,z,.3,1.2,.16,edge,"Sanctuary carvings");
     for(const z of [-4.45,4.45])for(let i=0;i<12;i++){
      const x=-6.1+i*1.1,wheel=ring(x,.9,z,.47,.08,edge,"Chariot wheels");wheel.rotation.x=0;
      for(let s=0;s<8;s++){const spoke=box(x,.9,z,.05,.86,.065,stone,"Chariot wheel spokes");spoke.rotation.z=s*Math.PI/4}
@@ -67,10 +80,12 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     for(const x of [-1,1])spire(x,3.4,-1,.75,5,stone,"Subsidiary spires");
     spire(0,3.15,1,2.4,3.1,stone,"Great hall roof");spire(0,2.8,4,1.7,2.3,stone,"Entrance roof");
     for(const side of [-1,1])for(let z=-5;z<=5;z+=.75){box(side*2.55,2.35,z,.22,1.8,.3,edge,"Sculptural wall rhythm");cylinder(side*2.69,2.25,z,.12,.65,stone,"Sculptural wall rhythm")}
+    for(let y=1.5;y<3.5;y+=.32)for(const side of [-1,1])box(side*2.6,y,-3,.12,.07,5.2,edge,"Carved stone courses");
     for(let i=0;i<8;i++)box(0,1.15-i*.14,6.3+i*.25,2,.18,.3,edge,"Entrance stairs");
    }else if(monument==='nalanda'){
     box(-2,.15,-1,13,.3,14,edge,"Monastery foundation");
     for(const x of [-7,3])for(let z=-6;z<=4;z+=2){box(x,.9,z,1.8,1.4,.25,stone,"Monastic cells");box(x-.85,.9,z+1,.22,1.4,2,stone,"Monastic cells");box(x+.85,.9,z+1,.22,1.4,2,stone,"Monastic cells")}
+    for(let y=.45;y<1.65;y+=.17)for(const z of [-7,6])box(-2,y,z,12,.045,.43,edge,"Brick courses");
     for(const z of [-7,6])box(-2,1,z,12,1.7,.4,stone,"Enclosing walls");
     box(-2,.35,-.5,6,.18,8,stone,"Open courtyard");
     for(const x of [-5,1])for(let z=-5;z<=4;z+=1.5)cylinder(x,full?1.7:.8,z,.18,full?2.6:.8,stone,"Courtyard colonnade");
@@ -93,10 +108,10 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let downX=0,downY=0;
   const down=(e:PointerEvent)=>{downX=e.clientX;downY=e.clientY};const click=(e:PointerEvent)=>{if(Math.hypot(e.clientX-downX,e.clientY-downY)>6)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(parts)[0];if(hit)onSelect(hit.object.userData.feature)};
   renderer.domElement.addEventListener("pointerdown",down);renderer.domElement.addEventListener("pointerup",click);
-  const resize=new ResizeObserver(()=>{if(!el.clientWidth||!el.clientHeight)return;camera.aspect=el.clientWidth/el.clientHeight;camera.zoom=camera.aspect<1?.85:1;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight)});resize.observe(el);
+  const resize=new ResizeObserver(()=>{if(!el.clientWidth||!el.clientHeight)return;camera.aspect=el.clientWidth/el.clientHeight;camera.zoom=camera.aspect<1?.9:1;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight)});resize.observe(el);
   let frame=0;const draw=()=>{controls.autoRotate=rotation.current;controls.update();renderer.render(scene,camera);frame=requestAnimationFrame(draw)};draw();
   return()=>{disposed=true;cancelAnimationFrame(frame);resize.disconnect();controls.dispose();controlsRef.current=null;renderer.domElement.removeEventListener("pointerdown",down);renderer.domElement.removeEventListener("pointerup",click);scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}});texture.dispose();renderer.dispose();renderer.domElement.remove()};
  },[monument,modelURL,intact,stage,onSelect]);
  if(!modelURL&&!['konark','khajuraho','nalanda','shanti-stupa'].includes(monument))return <div className="viewer"><div className="empty"><h3>No 3D model added yet</h3><p>Add a self-contained GLB file in Manage places.</p></div></div>;
- return <><div className="viewer" ref={host}>{error&&<div className="empty"><h3>{modelURL?'This model could not be loaded':'3D is unavailable in this browser'}</h3><p>{modelURL?'Choose a valid, self-contained GLB file.':'Enable WebGL or explore the photographs and history tabs.'}</p></div>}</div><div className="viewer-tools"><button title="Zoom in" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(.85).add(c.target);c.update()}}}><ZoomIn size={18}/></button><button title="Zoom out" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(1.15).add(c.target);c.update()}}}><ZoomOut size={18}/></button><button title="Reset camera" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.set(20,15,24);c.target.set(0,3,0);c.update()}}}><RotateCcw size={18}/></button></div></>;
+ return <><div className="viewer" ref={host}>{error&&<div className="empty"><h3>{modelURL?'This model could not be loaded':'3D is unavailable in this browser'}</h3><p>{modelURL?'Choose a valid, self-contained GLB file.':'Enable WebGL or explore the photographs and history tabs.'}</p></div>}</div><div className="viewer-tools"><button title="Zoom in" aria-label="Zoom in" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(.85).add(c.target);c.update()}}}><ZoomIn size={18}/></button><button title="Zoom out" aria-label="Zoom out" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.sub(c.target).multiplyScalar(1.15).add(c.target);c.update()}}}><ZoomOut size={18}/></button><button title="Reset camera" aria-label="Reset camera" onClick={()=>{const c=controlsRef.current;if(c){c.object.position.copy(monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17));c.target.set(0,monument==='konark'&&intact?6.5:monument==='khajuraho'?5:3,0);c.update()}}}><RotateCcw size={18}/></button></div></>;
 }
