@@ -13,6 +13,26 @@ export type GalleryPhoto = {
 export const galleryPhotos: Record<string, GalleryPhoto[]> = {
   "shanti-stupa": [
     {
+      id: "shanti-exterior-v2",
+      src: "/heritage/gallery/shanti-exterior-v2.jpg",
+      title: "Upper dome and decorated terraces",
+      alt: "Low-angle view of Shanti Stupa's white dome, finial and decorated terraces",
+      credit: "Rajesh Narukulla / Wikimedia Commons / CC BY-SA 3.0",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:ShantiStupa_Leh.jpg",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0/",
+      changes: "Wikimedia resized preview; no content alterations.",
+    },
+    {
+      id: "shanti-hill-panorama",
+      src: "/heritage/gallery/shanti-hill-panorama.jpg",
+      title: "Stupa on the Leh hillside",
+      alt: "Distant view of Shanti Stupa on a hill above Leh and the Ladakh mountains",
+      credit: "ShivaRajvanshi / Wikimedia Commons / CC BY-SA 4.0",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:Shanti_Stupa_on_the_hills_in_Leh.jpg",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+      changes: "Wikimedia resized preview; no content alterations.",
+    },
+    {
       id: "shanti-stupa-relief",
       src: "/heritage/gallery/shanti-stupa-relief.jpg",
       title: "Buddha relief on the stupa",
@@ -34,6 +54,26 @@ export const galleryPhotos: Record<string, GalleryPhoto[]> = {
     },
   ],
   konark: [
+    {
+      id: "konark-dance-hall",
+      src: "/heritage/gallery/konark-dance-hall.jpg",
+      title: "Dance hall facade",
+      alt: "Carved stone facade at the dance hall of Konark Sun Temple",
+      credit: "Shamik Chakravorty / Wikimedia Commons / CC BY-SA 4.0",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:Dance_Theater_Konark_Sun_Temple_N-OR-63.jpg",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+      changes: "Wikimedia resized preview; no content alterations.",
+    },
+    {
+      id: "konark-carvings",
+      src: "/heritage/gallery/konark-carvings.jpg",
+      title: "Stone wall carvings",
+      alt: "Close view of sculpted figures and architectural courses at Konark Sun Temple",
+      credit: "Kaushik.prachi / Wikimedia Commons / CC BY-SA 3.0",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:Carvings_on_the_sun_temple.JPG",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0/",
+      changes: "Wikimedia resized preview; no content alterations.",
+    },
     {
       id: "konark-wheel",
       src: "/heritage/gallery/konark-wheel.jpg",
@@ -57,6 +97,26 @@ export const galleryPhotos: Record<string, GalleryPhoto[]> = {
   ],
   nalanda: [
     {
+      id: "nalanda-ruins-v2",
+      src: "/heritage/gallery/nalanda-ruins-v2.jpg",
+      title: "Excavated brick foundations",
+      alt: "Wide view across Nalanda's excavated brick foundations and small stupas",
+      credit: "Vishvajeet Kumar / Pexels License",
+      sourceUrl: "https://www.pexels.com/photo/ancient-buddhist-ruins-in-nalanda-india-38186484/",
+      licenseUrl: "https://www.pexels.com/license/",
+      changes: "Pexels compressed preview; no content alterations.",
+    },
+    {
+      id: "nalanda-monastery-11",
+      src: "/heritage/gallery/nalanda-monastery-11.jpg",
+      title: "Monastery 11 remains",
+      alt: "Brick foundations and surviving stone pillars at Monastery 11 in ancient Nalanda",
+      credit: "Amitabha Gupta / Wikimedia Commons / CC BY 4.0",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:Monastery_no_11_at_excavated_ruins_of_Nalanda_University_in_the_State_of_Bihar,_India_16.jpg",
+      licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+      changes: "Wikimedia resized preview; no content alterations.",
+    },
+    {
       id: "nalanda-temple-stairs",
       src: "/heritage/gallery/nalanda-temple-stairs.jpg",
       title: "Temple 3 stairway",
@@ -78,6 +138,26 @@ export const galleryPhotos: Record<string, GalleryPhoto[]> = {
     },
   ],
   khajuraho: [
+    {
+      id: "kandariya-exterior-v2",
+      src: "/heritage/gallery/kandariya-exterior-v2.jpg",
+      title: "Stairway and main tower",
+      alt: "Approach stairway and ornamented main tower of Kandariya Mahadev Temple",
+      credit: "Pranab Kumar Saha / Pexels License",
+      sourceUrl: "https://www.pexels.com/photo/kandariya-mahadeva-temple-20545471/",
+      licenseUrl: "https://www.pexels.com/license/",
+      changes: "Pexels compressed preview; no content alterations.",
+    },
+    {
+      id: "kandariya-visitor-view",
+      src: "/heritage/gallery/kandariya-visitor-view.jpg",
+      title: "Sculpted exterior walls",
+      alt: "Low-angle view of Kandariya Mahadev Temple's sculpted exterior walls and spires",
+      credit: "Somesh Raj / Pexels License",
+      sourceUrl: "https://www.pexels.com/photo/a-man-standing-in-front-of-the-famous-kandariya-mahadeva-temple-in-india-7184626/",
+      licenseUrl: "https://www.pexels.com/license/",
+      changes: "Pexels compressed preview; no content alterations.",
+    },
     {
       id: "kandariya-entrance",
       src: "/heritage/gallery/kandariya-entrance.jpg",

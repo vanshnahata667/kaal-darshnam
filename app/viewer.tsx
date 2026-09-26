@@ -15,7 +15,8 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
   const camera=new THREE.PerspectiveCamera(38,el.clientWidth/el.clientHeight,.1,150);
   const cameraStart=monument==='konark'?(intact?new THREE.Vector3(23,19,25):new THREE.Vector3(15,11,18)):monument==='nalanda'?new THREE.Vector3(19,14,20):monument==='khajuraho'?new THREE.Vector3(19,16,24):new THREE.Vector3(13,10,17);
   const cameraTarget=monument==='konark'&&intact?new THREE.Vector3(0,6.5,0):monument==='khajuraho'?new THREE.Vector3(0,5,0):new THREE.Vector3(0,3,0);
-  camera.position.copy(cameraStart);
+  const framing=monument==='nalanda'?.88:monument==='khajuraho'?.91:monument==='shanti-stupa'?.9:.87;
+  camera.position.copy(cameraTarget).add(cameraStart.clone().sub(cameraTarget).multiplyScalar(framing));
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;el.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("aria-label","Interactive schematic temple reconstruction");
   const controls=new OrbitControls(camera,renderer.domElement);controlsRef.current=controls;controls.target.copy(cameraTarget);controls.enableDamping=true;controls.minDistance=8;controls.maxDistance=55;controls.maxPolarAngle=Math.PI/2.1;controls.autoRotateSpeed=.8;
@@ -55,6 +56,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     box(2.4,3,0,5.2,3.5,5.2,stone,"Assembly hall");
     for(let i=0;i<12;i++)box(2.4,4.9+i*.28,0,6-i*.4,.27,6-i*.4,stone,"Assembly hall roof");
     cylinder(2.4,8.35,0,.65,.4,edge,"Assembly hall roof");
+    const recess=new THREE.MeshStandardMaterial({color:0x302923,roughness:1});
+    box(2.4,2.55,2.66,1.25,2.25,.06,recess,"Assembly hall entrance");
+    for(const x of [1.7,3.1])box(x,2.6,2.75,.22,2.65,.26,edge,"Assembly hall entrance");
+    box(2.4,4.02,2.75,1.7,.24,.3,edge,"Assembly hall entrance");
+    for(let tier=0;tier<10;tier++){const width=5.9-tier*.4,y=5.08+tier*.28;for(const side of [-1,1])box(2.4+side*width*.48,y,0,.11,.15,width,edge,"Assembly hall roof")}
     for(const side of [-1,1])for(let i=0;i<7;i++){box(2.4,1.8+i*.4,side*2.66,5.4,.09,.2,edge,"Carved courses");for(let x=.3;x<5;x+=.7)box(x,2.8,side*2.7,.16,2.3,.18,edge,"Carved pilasters")}
     box(-3.4,1.6,0,4.6,.9,4.6,stone,"Sanctuary remains");
     if(full||stage===1){
@@ -65,32 +71,44 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     for(const x of [-5.25,-4.15,-3.05,-1.95])for(const z of [-2.36,2.36])box(x,2.2,z,.3,1.2,.16,edge,"Sanctuary carvings");
     for(const z of [-4.45,4.45])for(let i=0;i<12;i++){
      const x=-6.1+i*1.1,wheel=ring(x,.9,z,.47,.08,edge,"Chariot wheels");wheel.rotation.x=0;
+     const inner=ring(x,.9,z,.29,.035,stone,"Chariot wheels");inner.rotation.x=0;
      for(let s=0;s<8;s++){const spoke=box(x,.9,z,.05,.86,.065,stone,"Chariot wheel spokes");spoke.rotation.z=s*Math.PI/4}
      const hub=cylinder(x,.9,z,.13,.22,edge,"Chariot wheels");hub.rotation.x=Math.PI/2;
     }
     for(let i=0;i<8;i++)box(7+i*.25,1.1-i*.13,0,.3,.18,2.2,edge,"Entry stairs");
-    for(const x of [-2,0,2])for(const z of [7,9]){box(x,.3,z,.8,.3,.8,edge,"Dance hall");cylinder(x,1.2,z,.2,1.6,stone,"Dance hall pillars")}
+    for(const x of [-2,0,2])for(const z of [7,9]){box(x,.3,z,.8,.3,.8,edge,"Dance hall");cylinder(x,1.2,z,.2,1.6,stone,"Dance hall pillars");box(x,2.05,z,.58,.2,.58,edge,"Dance hall capitals")}
+    for(const z of [7,9])box(0,2.23,z,5.6,.2,.5,stone,"Dance hall lintel");
+    for(const x of [-2,2])box(x,2.23,8,.45,.2,2.4,stone,"Dance hall lintel");
    }else if(monument==='khajuraho'){
     for(let i=0;i<5;i++)box(0,.15+i*.25,0,9-i*.2,.25,17-i*.25,edge,"Raised platform");
     box(0,2.4,-3,5,2.8,5,stone,"Sanctuary");
     box(0,2.1,1,5.6,2.3,4,stone,"Great hall");
     box(0,1.9,4,4,1.9,3,stone,"Entrance hall");
+    const recess=new THREE.MeshStandardMaterial({color:0x33271f,roughness:1});
+    box(0,2.05,5.53,1.25,1.7,.05,recess,"Entrance porch");
+    for(const x of [-.78,.78])box(x,2.04,5.6,.22,2.1,.28,edge,"Entrance porch");
+    box(0,3.12,5.6,1.9,.2,.34,edge,"Entrance porch");
     spire(0,3.7,-3,2.6,9,stone,"Principal spire");
     for(const x of [-1.9,1.9])for(const z of [-4.8,-2.8,-.9])spire(x,3.1,z,.8,3.5,stone,"Subsidiary spires");
     for(const x of [-1,1])spire(x,3.4,-1,.75,5,stone,"Subsidiary spires");
     spire(0,3.15,1,2.4,3.1,stone,"Great hall roof");spire(0,2.8,4,1.7,2.3,stone,"Entrance roof");
     for(const side of [-1,1])for(let z=-5;z<=5;z+=.75){box(side*2.55,2.35,z,.22,1.8,.3,edge,"Sculptural wall rhythm");cylinder(side*2.69,2.25,z,.12,.65,stone,"Sculptural wall rhythm")}
     for(let y=1.5;y<3.5;y+=.32)for(const side of [-1,1])box(side*2.6,y,-3,.12,.07,5.2,edge,"Carved stone courses");
+    for(const side of [-1,1])for(let z=-4.8;z<4.9;z+=.72){box(side*2.7,1.55,z,.22,.4,.4,stone,"Sculptural wall rhythm");box(side*2.72,2.68,z,.18,.16,.46,stone,"Sculptural wall rhythm")}
+    for(const z of [-5,-3,0,2])for(const side of [-1,1])box(side*2.68,3.02,z,.45,.18,.6,edge,"Carved stone courses");
     for(let i=0;i<8;i++)box(0,1.15-i*.14,6.3+i*.25,2,.18,.3,edge,"Entrance stairs");
    }else if(monument==='nalanda'){
     box(-2,.15,-1,13,.3,14,edge,"Monastery foundation");
     for(const x of [-7,3])for(let z=-6;z<=4;z+=2){box(x,.9,z,1.8,1.4,.25,stone,"Monastic cells");box(x-.85,.9,z+1,.22,1.4,2,stone,"Monastic cells");box(x+.85,.9,z+1,.22,1.4,2,stone,"Monastic cells")}
+    for(const x of [-7,3])for(let z=-6;z<=4;z+=2)box(x,.3,z+.7,1.7,.17,1.5,edge,"Monastic cell threshold");
     for(let y=.45;y<1.65;y+=.17)for(const z of [-7,6])box(-2,y,z,12,.045,.43,edge,"Brick courses");
     for(const z of [-7,6])box(-2,1,z,12,1.7,.4,stone,"Enclosing walls");
     box(-2,.35,-.5,6,.18,8,stone,"Open courtyard");
     for(const x of [-5,1])for(let z=-5;z<=4;z+=1.5)cylinder(x,full?1.7:.8,z,.18,full?2.6:.8,stone,"Courtyard colonnade");
     if(full){for(const x of [-7,3])box(x,3,-.5,2.5,.28,13,inferred,"Monastery roofs");for(const z of [-6,5])box(-2,3,z,8,.28,2,inferred,"Monastery roofs")}
     for(let i=0;i<5;i++)box(7,.35+i*.55,1,5.5-i*.6,.55,6-i*.6,stone,"Temple terraces");
+    for(let i=0;i<5;i++){const width=5.5-i*.6,depth=6-i*.6,y=.65+i*.55;for(const side of [-1,1])box(7+side*width*.49,y,1,.1,.13,depth,edge,"Temple brickwork")}
+    for(const side of [-1,1])for(let z=-1.1;z<3.2;z+=.55)box(7+side*2.5,1.6,z,.18,.5,.22,edge,"Temple niches");
     for(let i=0;i<10;i++)box(7,.15+i*.26,5.8-i*.3,1.5,.25,.4,edge,"Temple staircase");
     if(full)spire(7,3.1,1,1.6,4,speculative,"Upper tower");
     for(let y=.55;y<2.8;y+=.22)box(7,y,4-(y*.6),Math.max(2.5,5.4-y),.04,.05,edge,"Brick courses");
@@ -99,8 +117,11 @@ export default function Viewer({monument,modelURL,intact,stage,rotating,onSelect
     cylinder(0,1.3,0,4.6,1.1,plaster,"Lower drum");cylinder(0,2.2,0,4.1,.8,plaster,"Upper terrace");
     for(let i=0;i<48;i++){const a=i*Math.PI/24;cylinder(Math.cos(a)*4.45,2.25,Math.sin(a)*4.45,.05,.6,plaster,"Terrace railing")}
     ring(0,2.58,0,4.45,.065,plaster,"Terrace railing");
+    for(let i=0;i<48;i++){const a=i*Math.PI/24;cylinder(Math.cos(a)*5.35,.91,Math.sin(a)*5.35,.055,.38,plaster,"Lower terrace railing")}
+    ring(0,1.13,0,5.35,.065,plaster,"Lower terrace railing");
     const dome=new THREE.Mesh(new THREE.SphereGeometry(3.5,64,32,0,Math.PI*2,0,Math.PI/2),plaster);dome.position.y=2.65;dome.castShadow=true;dome.receiveShadow=true;dome.userData.feature="White dome";scene.add(dome);parts.push(dome);
     box(0,6.25,0,.8,.65,.8,gold,"Harmika");for(let i=0;i<9;i++)cylinder(0,6.75+i*.22,0,.65-i*.055,.13,gold,"Finial");cylinder(0,8.9,0,.06,.65,gold,"Finial");
+    for(let i=0;i<36;i++){const a=i*Math.PI/18;cylinder(Math.cos(a)*4.04,1.88,Math.sin(a)*4.04,.075,.18,gold,"Decorated drum")}
     for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){const x=Math.cos(a)*4.58,z=Math.sin(a)*4.58;const niche=box(x,1.35,z,.9,.8,.16,edge,"Relief niche");niche.rotation.y=Math.PI/2-a;const medallion=new THREE.Mesh(new THREE.SphereGeometry(.28,20,12),gold);medallion.userData.feature="Relief niche";medallion.scale.z=.3;medallion.position.set(x*1.02,1.4,z*1.02);medallion.rotation.y=Math.PI/2-a;scene.add(medallion);parts.push(medallion)}
     for(let i=0;i<8;i++)box(0,.12+i*.13,7.2-i*.22,2,.18,.3,plaster,"Approach stairs");
    }
